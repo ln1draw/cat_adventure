@@ -2,12 +2,12 @@ class Animal
   attr_accessor :location, :travelhist
   attr_reader :hp, :name, :description
 
-  def initialize(hp, name, location, description)
-    @hp = hp
-    @name = name
-    @location = location
-    @travelhist = {location => 1}
-    @description = description
+  def initialize(infohash)
+    @hp = 10
+    @name = infohash[:name]
+    @location = infohash[:location]
+    @travelhist = {@location => 1}
+    @description = infohash[:description]
   end
 
   def takes_damage(ouch)
@@ -35,7 +35,47 @@ class Animal
 
 end
 
-sb = Animal.new(10, "STARBUCK", "MASTER BEDROOM", "You are a cat! You're a tiny black cat with long whiskers \n and a propensity for mischief. Everyone is drawn to your adorableness, \n but your agility and quick-wittedness will help you ESCAPE!")
+athena = Animal.new({:name => "ATHENA", :location => "MASTER BEDROOM", :description => File.readlines("athena.txt")})
+helo = Animal.new({:name => "HELO", :location => "MASTER BEDROOM", :description => File.readlines("helo.txt")})
+apollo = Animal.new({:name => "APOLLO", :location => "MASTER BEDROOM", :description => File.readlines("apollo.txt")})
+hooman1 = Animal.new({:name => "TALL HOOMAN", :location => "KITCHEN", :description => "It's a hooman. They all look the same to you."})
+hooman2 = Animal.new({:name => "SHORT HOOMAN", :location => "GUEST BEDROOM", :description => "It's a hooman. They all look the same to you."})
+
+
+class Starbuck < Animal
+  def initialize
+    @hp = 10
+    @name = "STARBUCK"
+    @location = "MASTER BEDROOM"
+    @description = File.readlines("starbuck.txt")
+    @travelhist = {@location => 1}
+  end
+
+  def checkroom
+    #checks to see if there are any other animals in the room
+  end
+
+  def escape
+    can_escape = true
+  end
+
+  def nap
+  end
+
+  def look(at)
+  end
+
+  def hiss(at)
+  end
+
+  def attack(at)
+  end
+
+  def talk(at)
+  end 
+
+  def get_input
+  end
 
 class Room
   attr_reader :name, :description, :exits
