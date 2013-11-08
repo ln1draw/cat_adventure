@@ -26,7 +26,7 @@
     end
 
     def current_location
-      @location
+      @location.name
     end
 
     def travelhist
@@ -48,7 +48,7 @@
     def initialize
       @hp = 10
       @name = "STARBUCK"
-      @location = "MASTER BEDROOM"
+      @location = $master
       @description = File.readlines("starbuck.txt")
       @travelhist = {@location => 1}
     end
@@ -65,7 +65,7 @@
 
     def nap
       if $can_escape #This should run checkroom eventually
-        if @location == "GUEST BEDROOM"
+        if @location == $guest
           puts File.readlines("wintext.txt")
           $winner = true #This part doesn't exist yet
         else
@@ -81,7 +81,7 @@
     end
 
     def hiss(at)
-      puts "You hiss at #{at}"
+      puts "You hiss at #{at.name}"
       if @hp < at.hp
         heal(1)
       elsif hp > at.hp
@@ -95,10 +95,10 @@
         puts "Attacking the TALL HOOMAN upsets you. You retreat"
         puts "to the MASTER BEDROOM with some emotional damage."
         $hooman1.takes_damage(2)
-        $hooman1.move
+        $hooman1.location.exit($hooman1)
         takes_damage(1)
-        @location = "MASTER BEDROOM"
-        travel_hist["MASTER BEDROOM"] = travel_hist["MASTER BEDROOM"] + 1
+        @location = $master
+        travel_hist[$master] = travel_hist[$master] + 1
         $helo.heal(2)
         $apollo.heal(2)
 
@@ -106,10 +106,10 @@
         puts "Attacking the SHORT HOOMAN upsets you. You retreat"
         puts "to the MASTER BEDROOM with some emotional damage."      
         $hooman2.takes_damage(3)
-        $hooman2.move
+        $hooman2.location.exit($hooman2)
         takes_damage(1)
-        @location = "MASTER BEDROOM"
-        travel_hist["MASTER BEDROOM"] = travel_hist["MASTER BEDROOM"] + 1
+        @location = $master
+        travel_hist[$master] = travel_hist[$master] + 1
         $helo.heal(2)
         $apollo.heal(2)
 
@@ -145,7 +145,7 @@
           $hooman1.takes_damage(2)
         else
           puts "TALL HOOMAN is tired of your sass."
-          $hooman1.move
+          $hooman1.location.exit($hooman1)
         end
 
       when $hooman2 then
@@ -154,45 +154,45 @@
           $hooman2.takes_damage(1)
         else
           puts "SHORT HOOMAN has had enough of your puffery!"
-          $hooman2.move
+          $hooman2.location.exit($hooman2)
         end
 
       when $apollo then
         puts "APOLLO barks back!"
         $apollo.takes_damage(1)
-        $apollo.move
+        $apollo.location.exit($apollo)
 
       when $helo then
         puts "HELO just wanted to be friends :("
-        $helo.move
+        $helo.location.exit($helo)
 
       when $athena then
         puts "ATHENA will help you any way she can!"
 
-        if @location == $apollo.current_location
+        if @current_location == $apollo.current_location
           puts "ATHENA distracted APOLLO for you! He chased her to the other room!"
           $athena.takes_damage(1)
-          $athena.move
-          $apollo.move
+          $athena.location.exit($athena)
+          $apollo.location.exit($apollo)
 
-        elsif @location == $helo.current_location
+        elsif @current_location == $helo.current_location
           puts "ATHENA walks up to HELO and boops him on the nose. Her"
           puts "cuddly adorableness reminds him of how much he loves naps."
           $helo.takes_damage(10)
           $athena.takes_damage(6)
 
-        elsif @location == $hooman1.current_location
+        elsif @current_location == $hooman1.current_location
           puts "ATHENA jumps on the TALL HOOMAN's shoulders and"
           puts "runs around! TALL HOOMAN is happy AND distracted."
           puts "She wanders off to the other room, taking ATHENA with her!"
-          $mom.move
-          $athena.move
+          $hooman1.location.exit($hooman1)
+          $athena.location.exit($athena)
 
-        elsif @location == $hooman2.current_location
+        elsif @current_location == $hooman2.current_location
           puts "ATHENA meows at SHORT HOOMAN until he says \"OH NO!"
           puts "Hungry kittens! They'll be more ravenous than raptors!\""
           puts "and he runs off to the other room."
-          $hooman2.move
+          $hooman2.location.exit($hooman2)
 
         else
           puts "ATHENA loves you the most!"
@@ -217,12 +217,12 @@
     
 
     def exit(animal)
-      if @exits.length == 0
+      if @exits.length == 1
         animal.move(exits[0])
       else
         new_hash = {}
         animal.travelhist.each do |key, value|
-          exits.each do |exit|
+          @exits.each do |exit|
             if key == exit
               new_hash[key] = value
             end
@@ -247,14 +247,14 @@
     end
   end
 
-  $master = Room.new({:name => "MASTER BEDROOM", :description => "A master bedroom", :exits => ["KITCHEN"]})
-  $kitchen = Room.new({:name => "KITCHEN", :description => "The kitchen", :exits => ["MASTER BEDROOM", "GUEST BEDROOM"]})
-  $guest = Room.new({:name => "GUEST", :description => "A guest bedroom", :exits => ["KITCHEN"]})
-  $athena = Animal.new({:name => "ATHENA", :location => "MASTER BEDROOM", :description => File.readlines("athena.txt")})
-  $helo = Animal.new({:name => "HELO", :location => "MASTER BEDROOM", :description => File.readlines("helo.txt")})
-  $apollo = Animal.new({:name => "APOLLO", :location => "MASTER BEDROOM", :description => File.readlines("apollo.txt")})
-  $hooman1 = Animal.new({:name => "TALL HOOMAN", :location => "KITCHEN", :description => "It's a hooman. They all look the same to you."})
-  $hooman2 = Animal.new({:name => "SHORT HOOMAN", :location => "GUEST BEDROOM", :description => "It's a hooman. They all look the same to you."})
+  $master = Room.new({:name => "MASTER BEDROOM", :description => "A master bedroom", :exits => [$kitchen]})
+  $kitchen = Room.new({:name => "KITCHEN", :description => "The kitchen", :exits => [$master, $guest]})
+  $guest = Room.new({:name => "GUEST", :description => "A guest bedroom", :exits => [$kitchen]})
+  $athena = Animal.new({:name => "ATHENA", :location => $master, :description => File.readlines("athena.txt")})
+  $helo = Animal.new({:name => "HELO", :location => $master, :description => File.readlines("helo.txt")})
+  $apollo = Animal.new({:name => "APOLLO", :location => $master, :description => File.readlines("apollo.txt")})
+  $hooman1 = Animal.new({:name => "TALL HOOMAN", :location => $kitchen, :description => "It's a hooman. They all look the same to you."})
+  $hooman2 = Animal.new({:name => "SHORT HOOMAN", :location => $guest, :description => "It's a hooman. They all look the same to you."})
   sb = Starbuck.new  
 
   def get_input
