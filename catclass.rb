@@ -35,7 +35,11 @@
 
     def move(location)
       @location = location
-      @travelhist[location] = @travelhist[location]+1
+      if @travelhist[location].nil?
+        @travelhist[location] = 1
+      else
+        @travelhist[location] = @travelhist[location]+1
+      end
     end
 
   end
@@ -205,31 +209,26 @@
   class Room
     attr_reader :name, :description, :exits
 
-    def initialize(name, description, exits)
-      @name = name
-      @description = description
-      @exits = exits
+    def initialize(roomhash)
+      @name = roomhash[:name]
+      @description = roomhash[:description]
+      @exits = roomhash[:exits] #this value should be an array
     end
     
 
     def exit(animal)
-      if @exit.length == 0
-        animal.move(exit[0])
+      if @exits.length == 0
+        animal.move(exits[0])
       else
         new_hash = {}
         animal.travelhist.each do |key, value|
-          exit.each do |exits|
-            if key == exits
+          exits.each do |exit|
+            if key == exit
               new_hash[key] = value
             end
           end
         end
-        # still needs to sort the stupid thing and then do something with that!
-
-
-        #search through the travel_hist hash for the keys that match
-        #the strings in exit. then, from those, find the value that is the lowest
-        #and call animal.move on that location
+        animal.move(new_hash.invert.sort.flatten[1])
       end
     end
   end
@@ -248,6 +247,9 @@
     end
   end
 
+  $master = Room.new({:name => "MASTER BEDROOM", :description => "A master bedroom", :exits => ["KITCHEN"]})
+  $kitchen = Room.new({:name => "KITCHEN", :description => "The kitchen", :exits => ["MASTER BEDROOM", "GUEST BEDROOM"]})
+  $guest = Room.new({:name => "GUEST", :description => "A guest bedroom", :exits => ["KITCHEN"]})
   $athena = Animal.new({:name => "ATHENA", :location => "MASTER BEDROOM", :description => File.readlines("athena.txt")})
   $helo = Animal.new({:name => "HELO", :location => "MASTER BEDROOM", :description => File.readlines("helo.txt")})
   $apollo = Animal.new({:name => "APOLLO", :location => "MASTER BEDROOM", :description => File.readlines("apollo.txt")})
